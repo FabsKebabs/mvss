@@ -160,9 +160,18 @@ Tab2:AddSlider({
     end
 })
 
-Tab3:AddButton({
+Tab3:AddToggle({
     Name = "Skeleton Esp",
+    Default = false,
     Callback = function(v)
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/Blissful4992/ESPs/main/SkeletonESP.lua"))()
+        if v then
+            -- When enabled, load the Skeleton ESP script
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/Blissful4992/ESPs/main/SkeletonESP.lua"))()
+        else
+            -- If you want to stop the Skeleton ESP when disabled, add cleanup code here.
+            -- For example, you might need to stop or disable the ESP by calling a function or setting a flag.
+            -- This will depend on the specific script you're using.
+        end
     end
 })
+
