@@ -108,6 +108,13 @@ espTab:AddButton({
     end
 })
 
+espTab:AddButton({
+    Name = "Name ESP",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/FabsKebabs/esp/refs/heads/main/mvs2"))()
+    end
+})
+
 ------------------------
 -- Player Settings (Teleport & WalkSpeed)
 ------------------------
