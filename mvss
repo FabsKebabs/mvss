@@ -138,16 +138,19 @@ characterTab:AddSlider({
 ------------------------
 -- Aimbot Toggle
 ------------------------
-mainTab:AddToggle({
-    Name = "AimBot", Default = false,
-    Callback = function(state)
-        if state then
-            HitboxSettings.Size = 9999999
-            HitboxSettings.Transparency = 1
-            updateHitboxes()
+Tab1:AddToggle({
+    Name = "AimBot",
+    Default = false,
+    Callback = function(v)
+        AimBotEnabled = v
+        if AimBotEnabled then
+            HB_Settings.Size = 9999999
+            HB_Settings.Transparency = 1
+            addHitBoxChanges()
+            teleportToClick()
         else
-            HitboxSettings.Size = 2
-            HitboxSettings.Transparency = 0.5
+            HB_Settings.Size = 2
+            HB_Settings.Transparency = 0.5
         end
     end
 })
