@@ -1,170 +1,236 @@
-local OrionLib = loadstring(game:HttpGet(
-('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
+local OrionLib = loadstring(game:HttpGet('https://raw.githubusercontent.com/shlexware/Orion/main/source'))()
 
 local Window = OrionLib:MakeWindow({
-    Name = [[<font color="rgb(255,0,0)">Publoader-MurderVsSherrifs</font>]],
+    Name = "Publoader - MurderVsSheriffs",
     HidePremium = false,
     SaveConfig = true,
-    ConfigFolder = "Subscribe To Pubzy"
+    ConfigFolder = "SubscribeToPubzy",
+    Color = Color3.fromRGB(30, 30, 30)  -- Dark background color for the window
 })
 
-local Tab1 = Window:MakeTab({Name = "Main", Icon = "", PremiumOnly = false})
-local Tab3 = Window:MakeTab({Name = "ESP", Icon = "", PremiumOnly = false})
-local Tab2 = Window:MakeTab({Name = "Character", Icon = "", PremiumOnly = false})
-local Expander = false
+local mainTab = Window:MakeTab({ Name = "General", Icon = "rbxassetid://123456", PremiumOnly = false })
+local espTab = Window:MakeTab({ Name = "ESP", Icon = "rbxassetid://789101", PremiumOnly = false })
+local characterTab = Window:MakeTab({ Name = "Player Settings", Icon = "rbxassetid://112233", PremiumOnly = false })
+local optimizationsTab = Window:MakeTab({ Name = "Optimitations", Icon = "rbxassetid://654321", PremiumOnly = false })
 
-local HB_Settings = {
-    Color = Color3.new(1, 0, 0), -- Default to red if not set
+
+local ExpanderEnabled = false
+
+local HitboxSettings = {
+    Color = Color3.fromRGB(255, 0, 0), -- Default to red for hitbox color
     Transparency = 0.5,
     Size = 2
 }
 
-local Player = game.Players.LocalPlayer
+local LocalPlayer = game.Players.LocalPlayer
 
--- Function to add hitbox changes
-function addHitBoxChanges()
-    while Expander do
+-- Function to apply hitbox changes
+function updateHitboxes()
+    while ExpanderEnabled do
         wait(0.1)
-        for i, plr in pairs(game.Players:GetPlayers()) do
-            if plr ~= Player and plr.Team ~= Player.Team then
-                local character = plr.Character
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if player ~= LocalPlayer and player.Team ~= LocalPlayer.Team then
+                local character = player.Character
                 if character then
-                    local hrp = character:FindFirstChild("HumanoidRootPart")
-                    if hrp then
-                        hrp.Size = Vector3.new(HB_Settings.Size, HB_Settings.Size, HB_Settings.Size)
-                        hrp.CanCollide = false
-                        hrp.Transparency = HB_Settings.Transparency
-                        hrp.Color = HB_Settings.Color
+                    local humanoidRoot = character:FindFirstChild("HumanoidRootPart")
+                    if humanoidRoot then
+                        humanoidRoot.Size = Vector3.new(HitboxSettings.Size, HitboxSettings.Size, HitboxSettings.Size)
+                        humanoidRoot.CanCollide = false
+                        humanoidRoot.Transparency = HitboxSettings.Transparency
+                        humanoidRoot.Color = HitboxSettings.Color
                     end
                 end
             end
         end
     end
 
-    -- Revert changes when Expander is false
-    for i, plr in pairs(game.Players:GetPlayers()) do
-        if plr ~= Player and plr.Team ~= Player.Team then
-            local character = plr.Character
+    -- Revert hitbox settings when Expander is disabled
+    for _, player in pairs(game.Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Team ~= LocalPlayer.Team then
+            local character = player.Character
             if character then
-                local hrp = character:FindFirstChild("HumanoidRootPart")
-                if hrp then
-                    hrp.Size = Vector3.new(2, 2, 2)
-                    hrp.CanCollide = false
-                    hrp.Transparency = 1
-                    hrp.Color = Color3.new(1, 1, 1)
+                local humanoidRoot = character:FindFirstChild("HumanoidRootPart")
+                if humanoidRoot then
+                    humanoidRoot.Size = Vector3.new(2, 2, 2)
+                    humanoidRoot.CanCollide = false
+                    humanoidRoot.Transparency = 1
+                    humanoidRoot.Color = Color3.fromRGB(255, 255, 255) -- Default white color
                 end
             end
         end
     end
 end
 
--- Function to teleport enemy to click position
-local function teleportToClick()
-    local mouse = Player:GetMouse()
-    mouse.Button1Down:Connect(function()
-        if AimBotEnabled then
-            local targetPosition = mouse.Hit.p
-            for i, plr in pairs(game.Players:GetPlayers()) do
-                if plr ~= Player and plr.Team ~= Player.Team then
-                    local character = plr.Character
-                    if character then
-                        local hrp = character:FindFirstChild("HumanoidRootPart")
-                        if hrp then
-                            hrp.CFrame = CFrame.new(targetPosition)
-                        end
-                    end
-                end
-            end
+-- Function to teleport to a player
+function teleportToPlayer(player)
+    if player.Character then
+        local humanoidRoot = player.Character:FindFirstChild("HumanoidRootPart")
+        if humanoidRoot then
+            LocalPlayer.Character.HumanoidRootPart.CFrame = humanoidRoot.CFrame
         end
-    end)
+    end
 end
 
--- GUI Elements
-Tab1:AddToggle({
-    Name = "HitBox Expander",
+-- Create a list of players in the server with clickable teleport buttons
+characterTab:AddSection({ Name = "Player Teleport" })
+
+local playerList = {}
+
+for _, player in pairs(game.Players:GetPlayers()) do
+    -- Avoid adding yourself to the list
+    if player ~= LocalPlayer then
+        local button = characterTab:AddButton({
+            Name = player.Name,
+            Callback = function()
+                teleportToPlayer(player)
+            end
+        })
+        table.insert(playerList, button)
+    end
+end
+
+
+
+
+-- GUI Elements with updated colors
+mainTab:AddToggle({
+    Name = "Hitbox Expander",
     Default = false,
-    Callback = function(v)
-        Expander = v
-        if Expander then
-            addHitBoxChanges()
+    Callback = function(state)
+        ExpanderEnabled = state
+        if ExpanderEnabled then
+            updateHitboxes()
         end
-    end
+    end,
+    Color = Color3.fromRGB(0, 255, 0) -- Green toggle button color
 })
 
-Tab1:AddToggle({
+mainTab:AddToggle({
     Name = "AimBot",
     Default = false,
-    Callback = function(v)
-        AimBotEnabled = v
+    Callback = function(state)
+        AimBotEnabled = state
         if AimBotEnabled then
-            HB_Settings.Size = 9999999
-            HB_Settings.Transparency = 1
-            addHitBoxChanges()
-            teleportToClick()
+            HitboxSettings.Size = 9999999
+            HitboxSettings.Transparency = 1
+            updateHitboxes()
+            teleportToMouseClick()
         else
-            HB_Settings.Size = 2
-            HB_Settings.Transparency = 0.5
+            HitboxSettings.Size = 2
+            HitboxSettings.Transparency = 0.5
         end
-    end
+    end,
+    Color = Color3.fromRGB(255, 255, 0) -- Yellow toggle button color
 })
 
-Tab1:AddSection({
-    Name = "HitBox Configuration"
+mainTab:AddSection({ Name = "Hitbox Configuration" })
+
+mainTab:AddColorpicker({
+    Name = "Hitbox Color",
+    Default = Color3.fromRGB(255, 0, 0),
+    Callback = function(value)
+        HitboxSettings.Color = value
+    end,
+    Color = Color3.fromRGB(0, 255, 255) -- Cyan color for colorpicker button
 })
 
-Tab1:AddColorpicker({
-	Name = "HitBox Color",
-	Default = Color3.fromRGB(255, 0, 0),
-	Callback = function(Value)
-		HB_Settings.Color = Value
-        print(Value)
-	end	  
-})
-
-Tab1:AddSlider({
-    Name = "HitBox Size",
+mainTab:AddSlider({
+    Name = "Hitbox Size",
     Min = 2,
     Max = 50,
     Default = 2,
-    Color = Color3.fromRGB(255, 0, 0),
+    Color = Color3.fromRGB(255, 165, 0), -- Orange slider color
     Increment = 1,
     ValueName = "Size",
-    Callback = function(Value)
-        HB_Settings.Size = Value
+    Callback = function(value)
+        HitboxSettings.Size = value
     end
 })
 
-Tab1:AddSlider({
-    Name = "HitBox Transparency",
+mainTab:AddSlider({
+    Name = "Hitbox Transparency",
     Min = 0,
     Max = 1,
-    Default = .5,
-    Color = Color3.fromRGB(255, 0, 0),
-    Increment = .1,
+    Default = 0.5,
+    Color = Color3.fromRGB(255, 0, 255), -- Magenta slider color
+    Increment = 0.1,
     ValueName = "Transparency",
-    Callback = function(Value)
-        HB_Settings.Transparency = Value
+    Callback = function(value)
+        HitboxSettings.Transparency = value
     end
 })
 
-Tab2:AddSlider({
+characterTab:AddSlider({
     Name = "WalkSpeed",
     Min = 0,
     Max = 50,
     Default = 16,
-    Color = Color3.fromRGB(255, 0, 0),
+    Color = Color3.fromRGB(255, 0, 0), -- Red slider color
     Increment = 1,
     ValueName = "WalkSpeed",
-    Callback = function(Value)
-        Player.Character.Humanoid.WalkSpeed = Value
+    Callback = function(value)
+        LocalPlayer.Character.Humanoid.WalkSpeed = value
     end
 })
 
-Tab3:AddButton({
+espTab:AddButton({
     Name = "Skeleton ESP",
-    Callback = function(v)
+    Callback = function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/Blissful4992/ESPs/main/SkeletonESP.lua"))()
-    end
+    end,
+    Color = Color3.fromRGB(0, 0, 255) -- Blue button color
 })
 
 
+
+-- Function to teleport to a player
+function teleportToPlayer(player)
+    if player.Character then
+        local humanoidRoot = player.Character:FindFirstChild("HumanoidRootPart")
+        if humanoidRoot then
+            LocalPlayer.Character.HumanoidRootPart.CFrame = humanoidRoot.CFrame
+        end
+    end
+end
+
+-- Function to teleport to a player
+function teleportToPlayer(player)
+    if player.Character then
+        local humanoidRoot = player.Character:FindFirstChild("HumanoidRootPart")
+        if humanoidRoot then
+            LocalPlayer.Character.HumanoidRootPart.CFrame = humanoidRoot.CFrame
+        end
+    end
+end
+
+-- Optimization Functions
+local performanceOptimized = false
+
+-- Function to toggle performance optimizations
+function togglePerformanceOptimizations(state)
+    performanceOptimized = state
+    if performanceOptimized then
+        -- Reduce visual effects to improve performance (e.g., disabling shadows, textures, etc.)
+        game:GetService("Lighting").GlobalShadows = false
+        game:GetService("Lighting").Brightness = 2
+        game:GetService("Lighting").Ambient = Color3.fromRGB(255, 255, 255)
+        -- Any other optimizations related to performance can be added here
+    else
+        -- Restore default settings
+        game:GetService("Lighting").GlobalShadows = true
+        game:GetService("Lighting").Brightness = 8
+        game:GetService("Lighting").Ambient = Color3.fromRGB(128, 128, 128)
+    end
+end
+
+-- Create Optimization Tab
+optimizationsTab:AddSection({ Name = "Performance Optimizations" })
+
+optimizationsTab:AddToggle({
+    Name = "Enable Performance Optimizations",
+    Default = false,
+    Callback = function(state)
+        togglePerformanceOptimizations(state)
+    end,
+    Color = Color3.fromRGB(0, 255, 0) -- Green toggle button color
+})
