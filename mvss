@@ -20,7 +20,6 @@ local HB_Settings = {
 }
 
 local Player = game.Players.LocalPlayer
-local GodModeEnabled = false -- Variable to track Godmode state
 
 -- Function to add hitbox changes
 function addHitBoxChanges()
@@ -54,25 +53,6 @@ function addHitBoxChanges()
                     hrp.Transparency = 1
                     hrp.Color = Color3.new(1, 1, 1)
                 end
-            end
-        end
-    end
-end
-
--- Function to enable/disable Godmode
-local function toggleGodMode()
-    local character = Player.Character
-    if character then
-        local humanoid = character:FindFirstChild("Humanoid")
-        if humanoid then
-            if GodModeEnabled then
-                humanoid.Health = humanoid.MaxHealth  -- Set health to max to simulate Godmode
-                humanoid.Died:Connect(function()
-                    -- Do nothing when the player dies (effectively making them invincible)
-                end)
-            else
-                -- Reset to normal behavior when Godmode is off
-                humanoid.Health = humanoid.MaxHealth
             end
         end
     end
@@ -128,26 +108,17 @@ Tab1:AddToggle({
     end
 })
 
-Tab1:AddToggle({
-    Name = "GodMode",
-    Default = false,
-    Callback = function(v)
-        GodModeEnabled = v
-        toggleGodMode()
-    end
-})
-
 Tab1:AddSection({
     Name = "HitBox Configuration"
 })
 
 Tab1:AddColorpicker({
-    Name = "HitBox Color",
-    Default = Color3.fromRGB(255, 0, 0),
-    Callback = function(Value)
-        HB_Settings.Color = Value
+	Name = "HitBox Color",
+	Default = Color3.fromRGB(255, 0, 0),
+	Callback = function(Value)
+		HB_Settings.Color = Value
         print(Value)
-    end
+	end	  
 })
 
 Tab1:AddSlider({
@@ -192,6 +163,6 @@ Tab2:AddSlider({
 Tab3:AddButton({
     Name = "ESP",
     Callback = function(v)
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/Blissful4992/ESPs/main/SkeletonESP.lua"))()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/FabsKebabs/esp/refs/heads/main/espmvs"))()
     end
 })
