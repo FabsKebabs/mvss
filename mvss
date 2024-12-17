@@ -115,6 +115,13 @@ espTab:AddButton({
     end
 })
 
+espTab:AddButton({
+    Name = "Glow ESP",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/FabsKebabs/esp/refs/heads/main/glowesp"))()
+    end
+})
+
 ------------------------
 -- Player Settings (Teleport & WalkSpeed)
 ------------------------
