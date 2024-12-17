@@ -125,14 +125,14 @@ espTab:AddButton({
     end
 })
 
-espTab:AddLabel({
-    Name = "Warning",
-    Text = "Be careful not to add too much ESP or you can crash.",
-    TextColor = Color3.fromRGB(255, 0, 0), -- Red text for emphasis
-    FontSize = 16, -- You can adjust the font size if needed
-end
+espTab:AddButton({
+    Name = "DO NOT USE TOO MANY ESP AT ONCE IT WILL LAG YOU",
+    BackgroundColor3 = Color3.fromRGB(255, 0, 0), -- Red background
+    TextColor = Color3.fromRGB(255, 255, 255), -- White text for visibility
+    Callback = function() 
+        -- Do nothing here, as it's just a warning message
+    end
 })
-
 
 
 ------------------------
