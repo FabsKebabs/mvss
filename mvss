@@ -94,6 +94,14 @@ mainTab:AddSlider({
 ------------------------
 -- ESP Tab
 ------------------------
+
+espTab:AddLabel({
+    Name = "Warning",
+    Text = "Be careful not to add too much ESP or you can crash.",
+    TextColor = Color3.fromRGB(255, 0, 0), -- Red text for emphasis
+    FontSize = 16, -- You can adjust the font size if needed
+})
+
 espTab:AddButton({
     Name = "Skeleton ESP",
     Callback = function()
