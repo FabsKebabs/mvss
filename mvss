@@ -5,179 +5,189 @@ local Window = OrionLib:MakeWindow({
     HidePremium = false,
     SaveConfig = true,
     ConfigFolder = "SubscribeToPubzy",
-    Color = Color3.fromRGB(30, 30, 30)
+    Color = Color3.fromRGB(30, 30, 30)  -- Dark background color for the window
 })
+
+local mainTab = Window:MakeTab({ Name = "General", Icon = "rbxassetid://123456", PremiumOnly = false })
+local espTab = Window:MakeTab({ Name = "ESP", Icon = "rbxassetid://789101", PremiumOnly = false })
+local characterTab = Window:MakeTab({ Name = "Player Settings", Icon = "rbxassetid://112233", PremiumOnly = false })
+
+local ExpanderEnabled = false
+
+local HitboxSettings = {
+    Color = Color3.fromRGB(255, 0, 0), -- Default to red for hitbox color
+    Transparency = 0.5,
+    Size = 2
+}
 
 local LocalPlayer = game.Players.LocalPlayer
-local HitboxSettings = { Color = Color3.fromRGB(255, 0, 0), Transparency = 0.5, Size = 2 }
-local ExpanderEnabled = false
-local performanceOptimized = false
 
--- Tabs
-local mainTab = Window:MakeTab({ Name = "General", Icon = "rbxassetid://123456" })
-local espTab = Window:MakeTab({ Name = "ESP", Icon = "rbxassetid://789101" })
-local characterTab = Window:MakeTab({ Name = "Player Settings", Icon = "rbxassetid://112233" })
-
-
-------------------------
--- General Tab (FOV)
-------------------------
-mainTab:AddSection({ Name = "Field of View" })
-mainTab:AddSlider({
-    Name = "Camera FOV",
-    Min = 50, Max = 120, Default = 70,
-    Color = Color3.fromRGB(0, 255, 0),
-    Increment = 1, ValueName = "FOV",
-    Callback = function(value)
-        workspace.CurrentCamera.FieldOfView = value
-    end
-})
-mainTab:AddButton({
-    Name = "Reset FOV",
-    Callback = function()
-        workspace.CurrentCamera.FieldOfView = 70
-    end
-})
-
-------------------------
--- Hitbox Settings
-------------------------
+-- Function to apply hitbox changes
 function updateHitboxes()
     while ExpanderEnabled do
         wait(0.1)
-        for _, player in ipairs(game.Players:GetPlayers()) do
+        for _, player in pairs(game.Players:GetPlayers()) do
             if player ~= LocalPlayer and player.Team ~= LocalPlayer.Team then
                 local character = player.Character
-                local rootPart = character and character:FindFirstChild("HumanoidRootPart")
-                if rootPart then
-                    rootPart.Size = Vector3.new(HitboxSettings.Size, HitboxSettings.Size, HitboxSettings.Size)
-                    rootPart.CanCollide = false
-                    rootPart.Transparency = HitboxSettings.Transparency
-                    rootPart.Color = HitboxSettings.Color
+                if character then
+                    local humanoidRoot = character:FindFirstChild("HumanoidRootPart")
+                    if humanoidRoot then
+                        humanoidRoot.Size = Vector3.new(HitboxSettings.Size, HitboxSettings.Size, HitboxSettings.Size)
+                        humanoidRoot.CanCollide = false
+                        humanoidRoot.Transparency = HitboxSettings.Transparency
+                        humanoidRoot.Color = HitboxSettings.Color
+                    end
+                end
+            end
+        end
+    end
+
+    -- Revert hitbox settings when Expander is disabled
+    for _, player in pairs(game.Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Team ~= LocalPlayer.Team then
+            local character = player.Character
+            if character then
+                local humanoidRoot = character:FindFirstChild("HumanoidRootPart")
+                if humanoidRoot then
+                    humanoidRoot.Size = Vector3.new(2, 2, 2)
+                    humanoidRoot.CanCollide = false
+                    humanoidRoot.Transparency = 1
+                    humanoidRoot.Color = Color3.fromRGB(255, 255, 255) -- Default white color
                 end
             end
         end
     end
 end
 
-mainTab:AddSection({ Name = "Hitbox Configuration" })
+-- Function to teleport to a player
+function teleportToPlayer(player)
+    if player.Character then
+        local humanoidRoot = player.Character:FindFirstChild("HumanoidRootPart")
+        if humanoidRoot then
+            LocalPlayer.Character.HumanoidRootPart.CFrame = humanoidRoot.CFrame
+        end
+    end
+end
+
+-- Create a list of players in the server with clickable teleport buttons
+characterTab:AddSection({ Name = "Player Teleport" })
+
+local playerList = {}
+
+for _, player in pairs(game.Players:GetPlayers()) do
+    -- Avoid adding yourself to the list
+    if player ~= LocalPlayer then
+        local button = characterTab:AddButton({
+            Name = player.Name,
+            Callback = function()
+                teleportToPlayer(player)
+            end
+        })
+        table.insert(playerList, button)
+    end
+end
+
+-- GUI Elements with updated colors
 mainTab:AddToggle({
-    Name = "Hitbox Expander", Default = false,
+    Name = "Hitbox Expander",
+    Default = false,
     Callback = function(state)
         ExpanderEnabled = state
         if ExpanderEnabled then
             updateHitboxes()
         end
-    end
+    end,
+    Color = Color3.fromRGB(0, 255, 0) -- Green toggle button color
 })
+
+mainTab:AddToggle({
+    Name = "AimBot",
+    Default = false,
+    Callback = function(state)
+        AimBotEnabled = state
+        if AimBotEnabled then
+            HitboxSettings.Size = 9999999
+            HitboxSettings.Transparency = 1
+            updateHitboxes()
+            teleportToMouseClick()
+        else
+            HitboxSettings.Size = 2
+            HitboxSettings.Transparency = 0.5
+        end
+    end,
+    Color = Color3.fromRGB(255, 255, 0) -- Yellow toggle button color
+})
+
+mainTab:AddSection({ Name = "Hitbox Configuration" })
+
 mainTab:AddColorpicker({
-    Name = "Hitbox Color", Default = Color3.fromRGB(255, 0, 0),
+    Name = "Hitbox Color",
+    Default = Color3.fromRGB(255, 0, 0),
     Callback = function(value)
         HitboxSettings.Color = value
-    end
+    end,
+    Color = Color3.fromRGB(0, 255, 255) -- Cyan color for colorpicker button
 })
+
 mainTab:AddSlider({
-    Name = "Hitbox Size", Min = 2, Max = 50, Default = 2,
-    Color = Color3.fromRGB(255, 165, 0),
-    Increment = 1, Callback = function(value)
+    Name = "Hitbox Size",
+    Min = 2,
+    Max = 50,
+    Default = 2,
+    Color = Color3.fromRGB(255, 165, 0), -- Orange slider color
+    Increment = 1,
+    ValueName = "Size",
+    Callback = function(value)
         HitboxSettings.Size = value
     end
 })
+
 mainTab:AddSlider({
-    Name = "Hitbox Transparency", Min = 0, Max = 1, Default = 0.5,
-    Color = Color3.fromRGB(255, 0, 255),
-    Increment = 0.1, Callback = function(value)
+    Name = "Hitbox Transparency",
+    Min = 0,
+    Max = 1,
+    Default = 0.5,
+    Color = Color3.fromRGB(255, 0, 255), -- Magenta slider color
+    Increment = 0.1,
+    ValueName = "Transparency",
+    Callback = function(value)
         HitboxSettings.Transparency = value
     end
 })
 
-------------------------
--- ESP Tab
-------------------------
-
-
+characterTab:AddSlider({
+    Name = "WalkSpeed",
+    Min = 0,
+    Max = 50,
+    Default = 16,
+    Color = Color3.fromRGB(255, 0, 0), -- Red slider color
+    Increment = 1,
+    ValueName = "WalkSpeed",
+    Callback = function(value)
+        LocalPlayer.Character.Humanoid.WalkSpeed = value
+    end
+})
 
 espTab:AddButton({
     Name = "Skeleton ESP",
     Callback = function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/FabsKebabs/esp/refs/heads/main/SkeletonEsp"))()
-    end
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/Blissful4992/ESPs/main/SkeletonESP.lua"))()
+    end,
+    Color = Color3.fromRGB(0, 0, 255) -- Blue button color
 })
 
 espTab:AddButton({
     Name = "Circle ESP",
     Callback = function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/FabsKebabs/esp/refs/heads/main/espmvs"))()
-    end
+    end,
+    Color = Color3.fromRGB(0, 0, 255) -- Blue button color
 })
 
 espTab:AddButton({
     Name = "Name ESP",
     Callback = function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/FabsKebabs/esp/refs/heads/main/mvs2"))()
-    end
-})
-
-espTab:AddButton({
-    Name = "Glow ESP",
-    Callback = function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/FabsKebabs/esp/refs/heads/main/glowesp"))()
-    end
-})
-
-espTab:AddButton({
-    Name = "DO NOT USE TOO MANY ESP AT ONCE IT WILL LAG YOU",
-    BackgroundColor3 = Color3.fromRGB(255, 0, 0), -- Red background
-    TextColor = Color3.fromRGB(255, 255, 255), -- White text for visibility
-    Callback = function() 
-        -- Do nothing here, as it's just a warning message
-    end
-})
-
-
-------------------------
--- Player Settings (Teleport & WalkSpeed)
-------------------------
-characterTab:AddSection({ Name = "Player Teleport" })
-for _, player in ipairs(game.Players:GetPlayers()) do
-    if player ~= LocalPlayer then
-        characterTab:AddButton({
-            Name = player.Name,
-            Callback = function()
-                local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-                if root then
-                    LocalPlayer.Character.HumanoidRootPart.CFrame = root.CFrame
-                end
-            end
-        })
-    end
-end
-
-characterTab:AddSlider({
-    Name = "WalkSpeed", Min = 0, Max = 50, Default = 16,
-    Color = Color3.fromRGB(255, 0, 0),
-    Increment = 1, Callback = function(value)
-        LocalPlayer.Character.Humanoid.WalkSpeed = value
-    end
-})
-
-
-------------------------
--- Aimbot Toggle
-------------------------
-Tab1:AddToggle({
-    Name = "AimBot",
-    Default = false,
-    Callback = function(v)
-        AimBotEnabled = v
-        if AimBotEnabled then
-            HB_Settings.Size = 9999999
-            HB_Settings.Transparency = 1
-            addHitBoxChanges()
-            teleportToClick()
-        else
-            HB_Settings.Size = 2
-            HB_Settings.Transparency = 0.5
-        end
-    end
+    end,
+    Color = Color3.fromRGB(0, 0, 255) -- Blue button color
 })
