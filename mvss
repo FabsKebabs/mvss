@@ -163,6 +163,6 @@ Tab2:AddSlider({
 Tab3:AddButton({
     Name = "Skeleton ESP",
     Callback = function(v)
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/Blissful4992/ESPs/main/SkeletonESP.lua"))()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/FabsKebabs/esp/refs/heads/main/espmvs"))()
     end
 })
