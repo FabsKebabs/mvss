@@ -1,8 +1,8 @@
-local OrionLib = loadstring(game:HttpGet('https://raw.githubusercontent.com/shlexware/Orion/main/source'))()
+local OrionLib = loadstring(game:HttpGet('https://raw.githubusercontent.com/FabsKebabs/load/refs/heads/main/Source'))()
 
 -- Create Window with Customized Design
 local Window = OrionLib:MakeWindow({
-    Name = [[<font color="rgb(255, 165, 0)">Murder vs Sheriffs</font>]],
+    Name = [[<font color="rgb(255, 165, 0)">Publoader-Murder vs Sheriffs</font>]],
     HidePremium = false,
     SaveConfig = true,
     ConfigFolder = "Pubzy_Configs",
